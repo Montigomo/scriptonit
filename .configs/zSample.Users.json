@@ -1,0 +1,72 @@
+{
+  "agitech": {
+    "Default": true,
+    "SimLinks": {
+      "\\.ssh\\config": "D:\\path\\config",
+      "\\.ssh\\id_rsa": "D:\\path\\id_rsa",
+      "\\.ssh\\id_rsa.pub": "D:\\path\\id_rsa.pub"
+    },
+    "RegFiles": [
+      "\\Explorer_Expand to current folder_ON.reg",
+      "\\Context Menu\\WIndows 11 classic context menu\\win11_classic_context_menu.reg",
+      "\\Explorer_Activate Windows Photo Viewer on Windows 10.reg",
+      "\\Explorer_Show_extensions_for_known_file_types.reg",
+      "\\Explorer_Show_SuperHidden.reg",
+      "\\Explorer_Open_to_PC.reg"
+    ],
+    "Hosts": {
+      "Common": [
+        "127.0.0.1|compute-1.amazonaws.com",
+        "0.0.0.0|license.sublimehq.com",
+        "83.243.40.67|wiki.bash-hackers.org"
+      ],
+      "Corel": [
+        "127.0.0.1|iws.corel.com",
+        "127.0.0.1|apps.corel.com",
+        "127.0.0.1|mc.corel.com",
+        "127.0.0.1|origin-mc.corel.com",
+        "127.0.0.1|iws.corel.com",
+        "127.0.0.1|deploy.akamaitechnologies.com"
+      ]
+    },
+    "MpPreference": [
+      "D:\\path1",
+      "D:\\path2",
+      "C:\\path3",
+      "D:\\path4"
+    ],
+    "Applications": [
+      "RARLab.WinRAR",
+      "Notepad++.Notepad++",
+      "Telegram.TelegramDesktop",
+      "Logitech.GHUB",
+      "DeepL.DeepL",
+      "OpenVPNTechnologies.OpenVPN",
+      "VideoLAN.VLC",
+      "Git.Git",
+      "TortoiseGit.TortoiseGit",
+      "Microsoft.DotNet.DesktopRuntime.7",
+      "Microsoft.DotNet.AspNetCore.7",
+      "Microsoft.DotNet.Runtime.7"
+    ],
+    "StartupItems": {
+      "UniversalMediaServer": {
+        "Path": "C:\\Program Files (x86)\\Universal Media Server\\UMS.exe",
+        "prepare": true
+      },
+      "VirtalHere": {
+        "Path": "D:\\tools\\network\\VirtualHere\\vhui64.exe",
+        "prepare": true
+      },
+      "SimpleDLNA": {
+        "Path": "D:\\software\\simpledlna\\SimpleDLNA.exe",
+        "prepare": true
+      },
+      "OpenVPN": {
+        "Path": "C:\\Program Files\\OpenVPN\\bin\\openvpn-gui.exe",
+        "Argument": "--connect 'sample.ovpn'",
+        "prepare": true
+      }
+    }
+  }
+}
