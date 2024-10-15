@@ -90,7 +90,47 @@ function LoadModule02 {
     Import-Module $module -Scope Global -Force -DisableNameChecking
 }
 
-function GetConfigObjects {
+function LmGetLocalizedResourceName {
+    param (
+        [Parameter()][string] $ResourceName
+    )
+
+    $jsonConfigPath = (Join-Path "$PSScriptRoot" "..\.configs\resx.json") | Resolve-Path -ErrorAction SilentlyContinue
+
+    $ui = Get-UICulture
+
+    $array = $ResourceName.Split('.')
+
+    $jsonConfigString = Get-Content $jsonConfigPath | Out-String
+
+    [hashtable]$objects = ConvertFrom-Json -InputObject $jsonConfigString -AsHashtable -Depth 256
+
+    $pointer = $objects
+
+    for ($i = 0; $i -lt $array.Count; $i++) {
+        $_key = $array[$i]
+        if ($pointer.ContainsKey($_key)) {
+            $pointer = $pointer[$_key]
+        }
+    }
+    
+    if($pointer -eq $objects){
+        $pointer = $null
+    }
+
+    if(-not $pointer.ContainsKey($ui.Name)){
+        $pointer = $null
+    }
+
+    if(-not $pointer){
+        Write-Host "Can't find localized name for recource $ResourceName" -ForegroundColor DarkYellow
+        return
+    }
+
+    return $pointer[$ui.Name]
+}
+
+function LmGetObjects {
     param (
         [Parameter()][string]$ConfigName
     )
@@ -132,7 +172,7 @@ function GetConfigObjects {
     return $object
 }
 
-function ConfigGetParams {
+function LmGetParams {
     param (
         [Parameter(Mandatory = $true)] [hashtable]$InvParams,
         [Parameter(Mandatory = $true)] [hashtable]$PSBoundParams
@@ -193,7 +233,7 @@ function LoadModule {
 }
 
 
-$params = ConfigGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
+$params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
 if ($params) {
     LoadModule @params
 }

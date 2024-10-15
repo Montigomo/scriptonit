@@ -25,7 +25,7 @@ function ResolveHost {
         $label = [System.Net.DNS]::GetHostEntry($Item.IPAddress).HostName
     }
     catch {}
-    if(-not ([bool]($Item.PSobject.Properties.name -match "ComputerName"))){
+    if (-not ([bool]($Item.PSobject.Properties.name -match "ComputerName"))) {
         $Item | Add-Member -MemberType NoteProperty -Name "ComputerName" -Value "no set"
     }
     $Item.ComputerName = $label
@@ -71,10 +71,10 @@ function ScanNetwork {
         [Parameter(Mandatory = $false, ParameterSetName = 'NetworkRange', Position = 1)] [ipaddress]$ToIp
     )
 
-    $objects = GetConfigObjects -ConfigName "Networks.$NetworkName.Scan"
+    $objects = LmGetObjects -ConfigName "Networks.$NetworkName.Scan"
     $objects = $objects.GetEnumerator() | Sort-Object { $_.order }
 
-    foreach($item in $objects){
+    foreach ($item in $objects) {
         $ipFrom = $item.ipfrom
         $ipTo = $item.ipto
         $IpRange = New-IpRange -From $ipFrom -To $ipTo
@@ -84,7 +84,7 @@ function ScanNetwork {
                 Write-Host "Lan: Scan by ping" -ForegroundColor DarkYellow
                 ScanIpRangePing -IpRange $IpRange
                 break
-              }
+            }
             "port" {
                 $port = $item.port
                 Write-Host "Lan: Scan port $port" -ForegroundColor DarkYellow
@@ -99,8 +99,7 @@ function ScanNetwork {
 
 Get-ModuleAdvanced -ModuleName "PSParallel"
 
-$params = ConfigGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
-
-if($params){
+$params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
+if ($params) {
     ScanNetwork @params
 }

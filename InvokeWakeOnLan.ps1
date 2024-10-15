@@ -22,7 +22,7 @@ function InvokeWakeOnLan {
         [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')][string[]]$ExcludeNames
     )
 
-    $objects = GetConfigObjects -ConfigName "Networks.$NetworkName.Hosts"
+    $objects = LmGetObjects -ConfigName "Networks.$NetworkName.Hosts"
 
     $objects = $objects.GetEnumerator() | Where-Object { $_.Value["wolFlag"] -eq $true }
 
@@ -35,7 +35,7 @@ function InvokeWakeOnLan {
 }
 
 
-$params = ConfigGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
+$params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
 if ($params) {
     Invoke-WakeOnLan @params
 }

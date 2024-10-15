@@ -14,7 +14,6 @@ Set-StrictMode -Version 3.0
 
 . "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Network") | Out-Null
 
-
 #region Help
 # this script may be used for update remote Windows PC in LAN via ssh Session
 # Чтобы разрешить сканирование на Microsoft Update, выполните команду:
@@ -64,7 +63,7 @@ function InstallMSUpdates {
 
     Write-Host "### Updatting $NetworkName network. ###" -ForegroundColor Cyan
 
-    $network = GetConfigObjects -ConfigName "Networks.$NetworkName"
+    $network = LmGetObjects -ConfigName "Networks.$NetworkName"
 
     $hosts = $network.Hosts
 
@@ -116,7 +115,7 @@ function InstallMSUpdates {
     }
 }
 
-$params = ConfigGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
+$params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
 if ($params) {
     InstallMSUpdates @params
 }

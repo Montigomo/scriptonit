@@ -14,7 +14,7 @@ function DownloadItems {
         [Parameter(Mandatory = $false)] [string]$Name
     )
 
-    $objects = GetConfigObjects -ConfigName "Software.$NetworkName"
+    $objects = LmGetObjects -ConfigName "Software.$NetworkName"
 
     if ($Name) {
         $objects = ($objects | Where-Object { $_."Name" -ieq $Name })
@@ -49,7 +49,7 @@ function DownloadItems {
 
 }
 
-$params = ConfigGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
+$params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
 
 if ($params) {
     DownloadItems @params

@@ -16,7 +16,7 @@ function ImportFirewallRule {
         [Parameter(Mandatory = $false, Position = 0)] [string]$RuleSetName
     )
 
-    $objects = GetConfigObjects -ConfigName "Firewall.$NetworkName"
+    $objects = LmGetObjects -ConfigName "Firewall.$NetworkName"
 
     if ($RuleSetName) {
         $objects = $objects | Where-Object { $_.RulesSetName -eq $RuleSetName }
@@ -46,7 +46,7 @@ function ImportFirewallRule {
     }
 }
 
-$params = ConfigGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
+$params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
 
 if ($params) {
     ImportFirewallRule @params

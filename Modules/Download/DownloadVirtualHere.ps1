@@ -219,16 +219,15 @@ function DownloadVirtualHere {
         [Parameter(Mandatory = $false)] [switch]$Force
     )
 
-    Get-ModuleAdvanced -ModuleName "PowerHTML"
-
-
-
     #region Get-ModuleAdvanced
     if (-not (Get-Command "Get-ModuleAdvanced" -ErrorAction SilentlyContinue)) {
         Write-Host "Can't find function with name 'Get-ModuleAdvanced'" -ForegroundColor DarkYellow
         return
     }
     #endregion
+
+    Get-ModuleAdvanced -ModuleName "PowerHTML"
+
 
     DvhGetObjects -DestinationFolder $DestinationFolder
 }

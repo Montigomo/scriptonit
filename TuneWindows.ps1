@@ -1,13 +1,11 @@
 [CmdletBinding()]
 param (
-    [Parameter(Mandatory = $false)] [string]$UserName
+    [Parameter(Mandatory = $false)] [string]$UserName = "UncleBob"
 )
 
 Set-StrictMode -Version 3.0
-
-#region Imports
 . "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Common.UserFolders", "Network") -Verbose | Out-Null
-#endregion
+
 
 #region functions
 function ConvertFrom-FixedColumnTable {
@@ -80,48 +78,6 @@ function ConvertFrom-FixedColumnTable {
     
 }
 
-function InstallApps {
-    param (
-        [Parameter(Mandatory = $true)][string]$UserName
-    )
-
-    Write-Host "Install apps ..." -ForegroundColor Green; 
-    $objects = GetConfigObjects -ConfigName "WinTune.$UserName.Applications"
-  
-    [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
-    $arrss = (winget list --accept-source-agreements) -match '^(\p{L}|-)' | ConvertFrom-FixedColumnTable
-
-    foreach ($item in $objects) {
-        if (-not ($arrss | Where-Object { $_.Id -ieq $item })) {
-            #if ((winget search --id "Microsoft.DotNet.DesktopRuntime" --exact) -match '^(\p{L}|-)' -ine "No package found matching input criteria.") {
-            winget install --id "$item" --exact --source winget --silent
-        }
-    }
-
-}
-
-function InstallMsvcrt {
-    Write-Host "Install all Msvcrt ..." -ForegroundColor Green; 
-    $items = @(
-        "Microsoft.VCRedist.2015+.x86"
-        "Microsoft.VCRedist.2015+.x64"
-        "Microsoft.VCRedist.2013.x86"
-        "Microsoft.VCRedist.2013.x64"
-        "Microsoft.VCRedist.2012.x86"
-        "Microsoft.VCRedist.2012.x64"
-        "Microsoft.VCRedist.2010.x86"
-        "Microsoft.VCRedist.2010.x64"
-        "Microsoft.VCRedist.2008.x86"
-        "Microsoft.VCRedist.2008.x64"
-        "Microsoft.VCRedist.2005.x86"  
-        "Microsoft.VCRedist.2005.x64"
-    )
-
-    foreach ($item in $items) {
-        winget install --exact --silent --id $item
-    }
-}
-
 function AddRegFile {
     [CmdletBinding()]
     param (
@@ -146,23 +102,64 @@ function AddRegFile {
 }
 #endregion
 
-#region Actions
+function InstallApplications {
+    param (
+        [Parameter(Mandatory = $true)][array]$Applications
+    )
+
+    Write-Host "[InstallApplications] started ..." -ForegroundColor Green
+  
+    [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
+    $arrss = (winget list --accept-source-agreements) -match '^(\p{L}|-)' | ConvertFrom-FixedColumnTable
+
+    $_idName = LmGetLocalizedResourceName -ResourceName "winget.id"
+    foreach ($item in $Applications) {
+        if (-not ($arrss | Where-Object { $_."$_idName" -ieq $item })) {
+            #if ((winget search --id "Microsoft.DotNet.DesktopRuntime" --exact) -match '^(\p{L}|-)' -ine "No package found matching input criteria.") {
+            winget install --id "$item" --exact --source winget --silent
+        }
+    }
+
+}
+
+function InstallMsvcrt {
+    Write-Host "Install all Msvcrt ..." -ForegroundColor Green
+    return
+    $items = @(
+        "Microsoft.VCRedist.2015+.x86"
+        "Microsoft.VCRedist.2015+.x64"
+        "Microsoft.VCRedist.2013.x86"
+        "Microsoft.VCRedist.2013.x64"
+        "Microsoft.VCRedist.2012.x86"
+        "Microsoft.VCRedist.2012.x64"
+        "Microsoft.VCRedist.2010.x86"
+        "Microsoft.VCRedist.2010.x64"
+        "Microsoft.VCRedist.2008.x86"
+        "Microsoft.VCRedist.2008.x64"
+        "Microsoft.VCRedist.2005.x86"  
+        "Microsoft.VCRedist.2005.x64"
+    )
+
+    foreach ($item in $items) {
+        winget install --exact --silent --id $item
+    }
+}
 
 function AddRegFiles {
     param (
-        [Parameter(Mandatory = $true)][string]$UserName,
+        [Parameter(Mandatory = $true)][array]$Items,
         [Parameter(Mandatory = $false)][string]$Folder = "$PSScriptRoot\Windows\Registry"
     )
- 
-    $objects = GetConfigObjects -ConfigName "WinTune.$UserName.RegFiles"
-  
-    foreach ($item in $objects) {
+    Write-Host "[AddRegFiles] started ..." -ForegroundColor Green
+
+    foreach ($item in $Items) {
         $filePath = "$Folder{0}" -f $item
         if (Test-Path -Path $filePath) {
             AddRegFile -RegFilePath $filePath
+            Write-Host "[AddRegFiles] $filePath added." -ForegroundColor DarkGreen
         }
         else {
-            Write-Output "$filePath does not exist."
+            Write-Host "[AddRegFiles] $filePath does not exist." -ForegroundColor DarkGreen
         }
     }
 
@@ -175,19 +172,20 @@ function PrepareHostsRaw {
     foreach ($item in $Hosts) {
         $values = ($item -split "\|")
         Add-Host -HostIp $values[0] -HostName $values[1]
+        Write-Host "[PrepareHosts] Added item $($values[0]) - $($values[1])" -ForegroundColor DarkGreen
     }
 
 }
 
 function PrepareHosts {
     param (
-        [Parameter(Mandatory = $true)][string]$UserName
+        [Parameter(Mandatory = $true)][hashtable]$Hosts
     )
-    
-    $objects = GetConfigObjects -ConfigName "Users.$UserName.Hosts"
+    Write-Host "[PrepareHosts] started ..." -ForegroundColor Green
 
-    foreach ($key in $objects.Keys) {
-        PrepareHostsRaw -Hosts $objects[$key]
+    foreach ($key in $Hosts.Keys) {
+        Write-Host "[PrepareHosts] Adding group: $key" -ForegroundColor DarkGreen
+        PrepareHostsRaw -Hosts $Hosts[$key]
     }
 
 }
@@ -292,32 +290,39 @@ function SetUserFolders {
 
 function SetMpPreference {
     param (
-        [Parameter(Mandatory = $true)][string]$UserName
+        [Parameter(Mandatory = $true)][array]$Items
     )
 
-    Write-Host "Set MpPreference" -ForegroundColor Green; 
-    $objects = GetConfigObjects -ConfigName "Users.$UserName.MpPreference"
+    Write-Host "[SetMpPreference] started ..." -ForegroundColor Green
 
     $mp = (Get-MpPreference)
     $o = $mp.ExclusionPath
 
-    foreach ($item in $objects) {
+    foreach ($item in $Items) {
         if ((Test-Path $item) -and ($o -inotcontains $item )) {
+            Write-Host "[SetMpPreference] Added item $item" -ForegroundColor DarkGreen
             Add-MpPreference -ExclusionPath $item
+        }else{
+            Write-Host "[SetMpPreference] Item $item already added." -ForegroundColor DarkGreen
         }
     }
 }
 
-function MakeLinks {
+function MakeSimLinks {
     param (
-        [Parameter(Mandatory = $true)][string]$UserName
+        [Parameter(Mandatory = $true)][hashtable]$SimLinks
     )
 
-    $objects = GetConfigObjects -ConfigName "Users.$UserName.SimLinks"
 
-    foreach ($key in $objects.Keys) {
+    Write-Host "[MakeSimLinks] started ..." -ForegroundColor Green
+
+    foreach ($key in $SimLinks.Keys) {
         $itemPath = "$([System.Environment]::GetFolderPath("UserProfile"))$key"
-        $itemDstPath = $objects[$key]
+        $itemDstPath = $SimLinks[$key]
+        if(-not (Test-Path -Path $itemPath)){
+            Write-Host "MakeLinks: path $itemPath not found." -ForegroundColor DarkYellow
+            continue
+        }
         $item = Get-Item "$itemPath" -ErrorAction SilentlyContinue
         if (Test-Path $itemDstPath) {
             if ($item -and (
@@ -339,15 +344,19 @@ function SetRdpConnections {
     param(
         [Parameter(Mandatory = $false)][switch]$Disable
     )
+
+    $resName = LmGetLocalizedResourceName -ResourceName "NetFirewal.DisplayGroup.Remote Desktop"
+
     if ($Disable) {
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -value 1
-        Disable-NetFirewallRule -DisplayGroup "Remote Desktop"
+        Disable-NetFirewallRule -DisplayGroup "$resName"
     }
     else {
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -value 0
-        Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+        Enable-NetFirewallRule -DisplayGroup "$resName"
     }
 }
+
 
 function GitConfig {
     $array = git config --global --list
@@ -356,26 +365,43 @@ function GitConfig {
     }
 }
 
+function RunOperation {
+    param (
+        [Parameter(Mandatory = $true)] [string]$OpName,
+        [Parameter(Mandatory = $false)] [hashtable]$Arguments
+    )
+
+
+    WriteLog "Run $OpName."
+
+    &"$OpName" @Arguments
+
+    #Invoke-Expression "$OpName $Arguments"
+    
+}
+
 function TuneWindows {
     param (
         [Parameter(Mandatory = $true)] [string]$UserName
     )
 
-    InstallMsvcrt
-    SetRdpConnections
-    GitConfig
-    SetUserFolders
+    $operations = LmGetObjects -ConfigName "Users.$UserName.Operations"
 
-
-    InstallApps  @PSBoundParameters
-    SetMpPreference @PSBoundParameters
-    PrepareHosts  @PSBoundParameters
-    AddRegFiles @PSBoundParameters
-    MakeLinks @PSBoundParameters
-
+    foreach($key in $operations.Keys){
+        if(-not (TestFunction -Name $key)){
+            continue
+        }
+        $operation = $operations["$key"]
+        if($operation.ContainsKey("params")){
+            $params = $operation["params"]
+        }else{
+            $params = $null
+        }
+        RunOperation -OpName $key -Arguments $params
+    }
 }
 
-$params = ConfigGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
+$params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
 if ($params) {
     TuneWindows @params
 }
