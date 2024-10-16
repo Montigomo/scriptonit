@@ -37,6 +37,7 @@ function Set-EnvironmentVariable
     {        
         "Add" {
             $items = [Environment]::GetEnvironmentVariable($Name, $Scope)
+            #.Split(";")
             if(!($items.Contains($Value)))
             {
                 $NewItem = $items + ";$Value"

@@ -1,5 +1,7 @@
-### version=1.00.02
 Set-StrictMode -Version 3.0
+
+. "$PSScriptRoot\..\LoadModule.ps1" -ModuleNames @("Common") | Out-Null
+
 function Install-NvDriver {  
     <#
     .SYNOPSIS
@@ -18,7 +20,7 @@ function Install-NvDriver {
         [switch] Force - install(reinstall) the driver even if remote version is the same
     .NOTES
         Author : Agitech 
-        Version : 1.0 
+        Version : 1.0.22
         Purpose : Get world better
     #>
     [CmdletBinding()]

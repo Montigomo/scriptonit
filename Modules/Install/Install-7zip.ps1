@@ -1,6 +1,20 @@
-### version=1.00.07
+Set-StrictMode -Version 3.0
+
+. "$PSScriptRoot\..\LoadModule.ps1" -ModuleNames @("Common", "Download") | Out-Null
+
 function Install-7zip {
-    Param
+    <#
+    .SYNOPSIS
+        Install 7zip
+    .DESCRIPTION
+    .PARAMETER IsWait
+    .PARAMETER UsePreview
+    .NOTES
+        Author : Agitech 
+        Version : 1.00.07
+        Purpose : Get world better    
+    #>
+    param
     (   
         [Parameter(Mandatory = $false)][string]$InstallFolder
     )
